@@ -61,6 +61,8 @@ nothing to install with `pip`.
 - **Multithreaded** crawling, page analysis, exposure probing, and active parameter probes (up to
   64 workers).
 - **Zero dependencies.** No `requests`, no `BeautifulSoup`, no virtual environment, no build step.
+- **Standalone Windows executable.** A single `AEGIS.exe` with the runtime bundled, for users who do
+  not want to install Python.
 - **Windows-first CLI** — ANSI colors with automatic virtual-terminal enablement, OSC 8 clickable
   links, and an ASCII identity banner.
 - **Safe by default** — GET parameters only, read-only payloads, no destructive verbs, time-based
@@ -114,7 +116,33 @@ Severity is color-coded in the terminal:
 
 ## Installation (Windows)
 
-### 1. Install Python 3.10 or newer
+### Option A — Download the executable (no Python required)
+
+1. Open the [latest release](https://github.com/pinkythegawd/aegis-scanner/releases/latest).
+2. Download **`AEGIS.exe`**.
+3. Optionally verify it against the SHA-256 published in the release notes:
+
+```powershell
+Get-FileHash .\AEGIS.exe -Algorithm SHA256
+```
+
+4. Run it from PowerShell or Command Prompt:
+
+```powershell
+.\AEGIS.exe --version
+.\AEGIS.exe https://authorized-target.example -y
+.\AEGIS.exe https://authorized-target.example -y --deep -o reports\scan -f both
+```
+
+The executable bundles the Python runtime and the full check library. Reports are written relative
+to the folder you run it from.
+
+> **Pro Tip** — Windows SmartScreen may warn because the binary is unsigned. Verify the SHA-256 and
+> choose **More info → Run anyway**, or build it yourself from source with `build_exe.ps1`.
+
+### Option B — Run from source
+
+#### 1. Install Python 3.10 or newer
 
 ```powershell
 winget install --id Python.Python.3.12 -e
@@ -129,20 +157,20 @@ Verify:
 py -3 --version
 ```
 
-### 2. Install Git (if needed)
+#### 2. Install Git (if needed)
 
 ```powershell
 winget install --id Git.Git -e
 ```
 
-### 3. Clone the repository
+#### 3. Clone the repository
 
 ```powershell
 git clone https://github.com/pinkythegawd/aegis-scanner.git
 Set-Location .\aegis-scanner
 ```
 
-### 4. Verify the install
+#### 4. Verify the install
 
 ```powershell
 py .\aegis.py --version
@@ -154,12 +182,23 @@ There is **no `pip install` step**. AEGIS uses only the standard library.
 > **Pro Tip** — Running a script by path (`py .\aegis.py`) does not require changing the PowerShell
 > execution policy. You only need `Set-ExecutionPolicy` for `.ps1` scripts, not for Python files.
 
-### 5. Optional: run from anywhere
+#### 5. Optional: run from anywhere
 
 ```powershell
 # Add a session alias
 Set-Alias aegis "py C:\tools\aegis-scanner\aegis.py"
 ```
+
+### Building the executable
+
+```powershell
+py -3 -m pip install pyinstaller pillow
+powershell -ExecutionPolicy Bypass -File .\build_exe.ps1
+```
+
+`build_exe.ps1` regenerates the icon from `packaging\aegis-icon.png`, runs PyInstaller with
+`aegis.spec`, and smoke-tests `dist\AEGIS.exe`. PyInstaller and Pillow are build-time only; the
+scanner itself still has no runtime dependencies.
 
 ---
 
